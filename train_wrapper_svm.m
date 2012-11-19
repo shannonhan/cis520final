@@ -2,6 +2,9 @@ clear;
 addPath('./libsvm');
 load ../data/music_dataset.mat
 
+param = [0.0001 4];
+
+
 [Xt_lyrics] = make_lyrics_sparse(train, vocab);
 [Xq_lyrics] = make_lyrics_sparse(quiz, vocab);
 
@@ -12,47 +15,27 @@ for i=1:numel(train)
 end
 
 Xt_audio = make_audio(train);
-%Xq_audio = make_audio(quiz);
+Xq_audio = make_audio(quiz);
 train=1;
 
-feature_selected=(sum(Xq_lyrics)>=10);
-%size(feature_selected)
-X= Xt_lyrics(:,feature_selected);
+cols = feature_selection_lyrics(Xt_lyrics, Yt, Xq_lyrics,vocab, param(1), param(2));
+X=Xt_lyrics(:,cols);
+X=tfidf(X);
+size(X)
+Y = Yt;
 
-%X=tfidf(X);
-Xt =Xq_lyrics(:,feature_selected);
-run =0;
+Xq = Xq_lyrics(:, cols);
+Xq = tfidf(Xq);
+Yq = zeros(size(Xq, 1),1);
+
 
 k = @(x,x2) kernel_intersection(x, x2);
-[test_err info]=kernel_libsvm(X, Yt, X, Yt,k);
+
+Kxq = k(X, Xq);
 
 
 
-if run,
-    nb=NaiveBayes.fit(X, Yt,'Distribution',dist_array);
-    save('nb.mat','nb','feature_selected');
-    if(train)
-        Yhat = nb.predict(X);
-    else
-        Yhat = nb.predict(Xt);
-    end
-    
-    
-    ranks = zeros(size(Yhat,1),10);
-    rank = [5 4 2 8 7 6 3 1 9 10];
-    for i=1:size(Yhat,1),
-        cur = rank;
-        if(~isnan(Yhat(i)))
-            cur(cur==Yhat(i))=[];
-            cur =[Yhat(i) cur];
-            if(train),
-                index = find(cur==Yt(i));
-                train_loss(i)=1-1/index;
-                train_error(i)=Yt(i)~=Yhat(i);               
-            end
-        end
-        ranks(i,:)=cur;    
-    end
-    mean(train_loss)
-    mean(train_error)
-end
+[test_err info]=kernel_libsvm(X, Y, X, Y,k,0);
+
+
+save('svm.mat', 'cols', 'Kxq', 'info');

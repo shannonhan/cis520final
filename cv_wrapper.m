@@ -1,7 +1,7 @@
 clear all
 close all
 %%load all files
-params = {[0.0003 6],[0.00025 6],[0.0003 5]};
+params = {[0.0001 4]};
 results={};
 
 
@@ -53,7 +53,7 @@ for parai = 1:numel(params),
             train_Y = Y(part ~= test_i,:);
 
             k = @(x,x2) kernel_intersection(x, x2);
-            [test_err info]=kernel_libsvm(train_X, train_Y, test_X, test_Y,k);
+            [test_err info]=kernel_libsvm(train_X, train_Y, test_X, test_Y,k,1);
             infos{test_i}=info;
             errors(test_i) = test_err;    
         end

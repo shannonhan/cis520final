@@ -4,8 +4,10 @@ function Y = tfidf( X )
 tf = bsxfun(@rdivide,X,sum(X,2));
 
 N= size(X,1);
-    
-idf = log(N./sum(X>0,1));    
+
+csum = sum(X>0,1);
+idf = log(N./csum);    
+idf(isinf(idf)) = 0;
 
 
 Y = bsxfun(@times, tf, idf);

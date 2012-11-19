@@ -13,10 +13,9 @@ Xt_audio = make_audio(train);
 Xq_audio = make_audio(quiz);
 
 %% Run algorithm
-ranks = predict_genre(Xt_lyrics, Xq_lyrics, ...
+[ranks,vals,yhat] = predict_genre(Xt_lyrics, Xq_lyrics, ...
                       Xt_audio, Xq_audio, ...
                       Yt);
 
 %% Save results to a text file for submission
 save('-ascii', 'submit.txt', 'ranks');
-

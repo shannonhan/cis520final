@@ -1,4 +1,4 @@
-function ranks = predict_genre(Xt_lyrics, Xq_lyrics, ...
+function [ranks, vals, yhat] = predict_genre(Xt_lyrics, Xq_lyrics, ...
                                Xt_audio, Xq_audio, ...
                                Yt)
 % Returns the predicted rankings, given lyric and audio features.
@@ -20,7 +20,10 @@ function ranks = predict_genre(Xt_lyrics, Xq_lyrics, ...
 % THIS IS JUST AN EXAMPLE
 example =0;
 dt =1;
-addpath('.\dt');
+isNb = 0;
+isSvm = 1;
+addpath('./dt');
+addPath('./libsvm');
 if(example),
     N = size(Xq_lyrics, 1);
     scores = zeros(N, 5);
@@ -37,6 +40,7 @@ if(example),
     end
     ranks = get_ranks(scores);
 end
+if(isNb),
     nan_count=0;
     load('nb.mat');
     X= Xq_lyrics(:,feature_selected);
@@ -50,10 +54,34 @@ end
         if(~isnan(Yhat(i)))
             cur(cur==Yhat(i))=[];
             cur =[Yhat(i) cur];
-        else,
+        else
             nan_count=nan_count+1;
         end
         ranks(i,:)=cur;
     end
-    nan_count
+end
+if(isSvm)
+	load('svm.mat');
+	Xt = Xq_lyrics(:,cols);
+    size(Xt)
+	Xt = tfidf(Xt);
+	model = info.model;
+	Y = zeros(size(Xt,1),1);
+	[yhat acc vals] = svmpredict(Y, [(1:size(Kxq,1))' Kxq], model, '-b 1');
+    
+    mapping = model.Label
+    for mi = 1:size(mapping),
+        ordered(:,mapping(mi)) = vals(:,mi);
+    
+    end
+    [~, ranks] = sort(ordered, 2,'descend');
+
+end
+
+
+
+
+
+
+
 end
